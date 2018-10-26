@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.UserMapper" >
+
+    <select id="queryAll" resultType="user">
+        select * from t_user
+    </select>
+
+    <select id="doAJAXLogin" resultType="user" parameterType="user">
+        select * from t_user where username = #{username} and password = #{password}
+    </select>
+
+    <select id = "pageQuery" resultType="user" parameterType="map">
+      select * from t_user
+      <where>
+          <if test="queryText != null and queryText != '' ">
+              and username like "%"#{queryText}"%"
+          </if>
+      </where>
+
+        <!--<where>
+            <if test="queryText != null">
+                and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>-->
+        ORDER BY create_time DESC
+        limit #{start},#{size}
+    </select>
+
+    <select id="pageQueryCount" resultType = "int" parameterType="map">
+      select COUNT(*) from t_user
+        <where>
+            <if test="queryText != null">
+                and username like "%"#{queryText}"%"
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertUser" parameterType="user">
+        insert into t_user (username, password, email, create_time)
+                VALUES(#{username},#{password},#{email},#{createTime})
+    </insert>
+
+    <update id="update" parameterType="user">
+      update t_user SET username = #{username},password = #{password},email = #{email}
+      where user_id = #{userId}
+    </update>
+
+    <delete id="deleteUserById" parameterType="int">
+        delete from t_user where user_id = #{userId}
+    </delete>
+
+    <delete id="deletes" parameterType="Integer[]">
+        delete from t_user where user_id IN
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+        #{id}
+        </foreach>
+    </delete>
+
+    <select id="queryRoleIdsByUserId" parameterType="int" resultType="Integer">
+        select role_id from t_user_role where user_id = #{userId}
+    </select>
+    
+    <insert id="insertUserRoles" parameterType="map">
+        INSERT INTO t_user_role ( user_id, role_id ) VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId},#{roleId})
+        </foreach>
+    </insert>
+
+    <delete id="deleteUserRoles" parameterType = "map">
+        DELETE FROM  t_user_role WHERE user_id = #{userId} and role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" close=")" separator=",">
+            #{roleId}
+        </foreach>
+    </delete>
+
+
+
+
+
+</mapper>
