@@ -21,10 +21,11 @@ import java.util.Properties;
 /**
  * springboot集成mybatis的基本入口 1）创建数据源(如果采用的是默认的    tomcat-jdbc数据源，则不需要)
  * 2）创建SqlSessionFactory 3）配置事务管理器，除非需要使用事务，否则不    用配置
+ *
  * @Author xuelongjiang
  */
 @Configuration // 该注解类似于spring配置文件
-public class MyBatisConfig {
+public class DynamicInitConfig {
 
     @Autowired
     private Environment environment;
@@ -32,7 +33,7 @@ public class MyBatisConfig {
 
     /**
      * 创建数据源(数据源的名称：方法名可以取为XXXDataSource(),XXX为数据    库名称,该名称也就是数据源的名称)
-    */
+     */
     @Bean
     public DataSource mainDataSource() throws Exception {
         Properties props = new Properties();
@@ -41,7 +42,7 @@ public class MyBatisConfig {
         props.put("username", environment.getProperty("main-datasource.username"));
         props.put("password", environment.getProperty("main-datasource.password"));
         return DruidDataSourceFactory.createDataSource(props);
-}
+    }
 
     @Bean
     public DataSource yuntuDataSource() throws Exception {
@@ -51,7 +52,7 @@ public class MyBatisConfig {
         props.put("username", environment.getProperty("yuntu-datasource.username"));
         props.put("password", environment.getProperty("yuntu-datasource.password"));
         return DruidDataSourceFactory.createDataSource(props);
-}
+    }
 
 
     /**
@@ -61,7 +62,7 @@ public class MyBatisConfig {
     @Bean
     @Primary
     public DynamicDataSource dataSource(@Qualifier("mainDataSource") DataSource mainDataSource,
-                                    @Qualifier("yuntuDataSource") DataSource yuntuDataSource) {
+                                        @Qualifier("yuntuDataSource") DataSource yuntuDataSource) {
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put(DatabaseType.main, mainDataSource);
         targetDataSources.put(DatabaseType.yuntu, yuntuDataSource);
@@ -77,14 +78,14 @@ public class MyBatisConfig {
      * 根据数据源创建SqlSessionFactory
      */
     @Bean
-     public SqlSessionFactory sqlSessionFactory(@Qualifier("mainDataSource") DataSource mainDataSource,
-                                                @Qualifier("yuntuDataSource") DataSource yuntuDataSource) throws Exception{
-                 SqlSessionFactoryBean fb = new SqlSessionFactoryBean();
-                fb.setDataSource(this.dataSource(mainDataSource, yuntuDataSource));
+    public SqlSessionFactory sqlSessionFactory(@Qualifier("mainDataSource") DataSource mainDataSource,
+                                               @Qualifier("yuntuDataSource") DataSource yuntuDataSource) throws Exception {
+        SqlSessionFactoryBean fb = new SqlSessionFactoryBean();
+        fb.setDataSource(this.dataSource(mainDataSource, yuntuDataSource));
         fb.setTypeAliasesPackage("com.example.demo.domain");//可以不设置
-                 fb.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath:mapper/*.xml"));
-                 return fb.getObject();
-             }
+        fb.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath:mapper/*.xml"));
+        return fb.getObject();
+    }
 
     /**
      * 配置事务管理器
